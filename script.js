@@ -1,7 +1,7 @@
-
 const canvas = document.getElementById('bgCanvas');
 const ctx = canvas.getContext('2d');
 let w, h;
+
 function resize() {
   w = canvas.width = window.innerWidth;
   h = canvas.height = window.innerHeight;
@@ -34,8 +34,7 @@ class Bubble {
   }
 }
 
-const bubbles = [];
-for(let i=0; i<50; i++) bubbles.push(new Bubble());
+const bubbles = Array.from({ length: 50 }, () => new Bubble());
 
 function animate() {
   ctx.clearRect(0, 0, w, h);
