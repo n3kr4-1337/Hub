@@ -31,16 +31,23 @@ main {
 }
 
 h1 {
-  margin-bottom: 30px;
+  margin-bottom: 10px;
   font-size: 3rem;
   color: #50e3c2;
   text-shadow: 0 0 8px #50e3c2;
 }
 
+.bio {
+  font-size: 1rem;
+  color: #ccc;
+  margin-bottom: 30px;
+  max-width: 600px;
+}
+
 .link-buttons {
   display: flex;
-  gap: 20px;
   flex-wrap: wrap;
+  gap: 20px;
   justify-content: center;
 }
 
@@ -52,11 +59,12 @@ h1 {
   font-weight: bold;
   border-radius: 10px;
   box-shadow: 0 0 12px #50e3c2;
-  transition: background-color 0.3s ease;
+  transition: transform 0.2s ease, background-color 0.3s ease;
 }
 
 .link-buttons a:hover {
   background-color: #3dc0a5;
+  transform: scale(1.05);
 }
 
 footer {
