@@ -1,181 +1,163 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Formulaire Webhook avec IP</title>
+  <meta charset="UTF-8">
+  <title>Formulaire complet</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
-    html, body {
-      margin: 0; padding: 0; height: 100%;
-      background: #0a0a0a;
-      font-family: 'Roboto Mono', monospace;
-      color: #eee;
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0d0d0d;
+      color: #00ffcc;
       overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
     }
-    canvas#bgCanvas {
+
+    .bubbles {
       position: fixed;
-      top: 0; left: 0;
       width: 100%;
       height: 100%;
-      z-index: 0;
+      z-index: -1;
+      overflow: hidden;
     }
+
+    .bubble {
+      position: absolute;
+      bottom: -100px;
+      width: 40px;
+      height: 40px;
+      background: rgba(0, 255, 204, 0.1);
+      border-radius: 50%;
+      animation: floatUp 15s infinite ease-in;
+    }
+
+    @keyframes floatUp {
+      from { transform: translateY(0); }
+      to { transform: translateY(-2000px); }
+    }
+
     .container {
-      z-index: 1;
-      background: rgba(20, 20, 20, 0.85);
+      max-width: 700px;
+      margin: auto;
       padding: 30px;
-      border-radius: 15px;
-      box-shadow: 0 0 20px #50e3c2aa;
-      text-align: center;
-      max-width: 400px;
-      width: 90%;
     }
+
     h1 {
-      color: #50e3c2;
-      text-shadow: 0 0 8px #50e3c2;
-      margin-bottom: 20px;
+      text-align: center;
+      font-size: 36px;
     }
-    input, select, textarea, button {
+
+    label {
+      display: block;
+      margin-top: 15px;
+    }
+
+    input, textarea {
       width: 100%;
       padding: 10px;
-      font-size: 1rem;
-      margin: 8px 0;
-      border: none;
-      border-radius: 8px;
-    }
-    input, select, textarea {
       background: #111;
-      color: #eee;
-      box-shadow: inset 0 0 8px #50e3c2;
+      border: 1px solid #00ffcc;
+      color: #00ffcc;
+      margin-top: 5px;
     }
-    textarea {
-      resize: vertical;
-    }
+
     button {
-      background: #50e3c2;
-      color: #000;
+      margin-top: 20px;
+      padding: 10px;
+      background: #00ffcc;
+      border: none;
+      color: black;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 0 12px #50e3c2;
-    }
-    button:hover {
-      background: #40b8a6;
+      width: 100%;
     }
   </style>
 </head>
 <body>
-  <canvas id="bgCanvas"></canvas>
+  <div class="bubbles"></div>
+
   <div class="container">
-    <h1>Formulaire Webhook</h1>
-    <input type="text" id="name" placeholder="Nom complet" required />
-    <input type="email" id="email" placeholder="Adresse e-mail" required />
-    <input type="text" id="age" placeholder="Âge" required />
-    <input type="text" id="ville" placeholder="Ville" required />
-    <select id="niveau" required>
-      <option value="">Niveau d'expérience</option>
-      <option value="Débutant">Débutant</option>
-      <option value="Intermédiaire">Intermédiaire</option>
-      <option value="Avancé">Avancé</option>
-    </select>
-    <textarea id="commentaire" placeholder="Commentaire ou motivation" rows="4" required></textarea>
-    <button onclick="sendToDiscord()">Valider</button>
+    <h1>Formulaire confidentiel</h1>
+    <form id="form">
+      <label>Nom :</label>
+      <input type="text" name="nom" required>
+      <label>Prénom :</label>
+      <input type="text" name="prenom" required>
+      <label>Email :</label>
+      <input type="email" name="email" required>
+      <label>Âge :</label>
+      <input type="number" name="age" required>
+      <label>Numéro de téléphone :</label>
+      <input type="tel" name="telephone" required>
+      <label>Adresse :</label>
+      <input type="text" name="adresse" required>
+      <label>Code postal :</label>
+      <input type="text" name="code_postal" required>
+      <label>Ville :</label>
+      <input type="text" name="ville" required>
+      <label>Pays :</label>
+      <input type="text" name="pays" required>
+      <label>Profession :</label>
+      <input type="text" name="profession" required>
+      <label>Comment nous avez-vous trouvé ?</label>
+      <input type="text" name="source" required>
+      <label>Message ou raison de contact :</label>
+      <textarea name="message" rows="4" required></textarea>
+      <button type="submit">Envoyer</button>
+    </form>
   </div>
 
   <script>
-    // Fond animé
-    const canvas = document.getElementById('bgCanvas');
-    const ctx = canvas.getContext('2d');
-    let w, h;
-    function resize() {
-      w = canvas.width = window.innerWidth;
-      h = canvas.height = window.innerHeight;
-    }
-    window.addEventListener('resize', resize);
-    resize();
-
-    class Bubble {
-      constructor() { this.reset(); }
-      reset() {
-        this.x = Math.random() * w;
-        this.y = h + Math.random() * 100;
-        this.radius = 5 + Math.random() * 15;
-        this.speed = 0.5 + Math.random() * 1.5;
-        this.opacity = 0.1 + Math.random() * 0.3;
-      }
-      update() {
-        this.y -= this.speed;
-        if (this.y < -this.radius) this.reset();
-      }
-      draw() {
-        ctx.beginPath();
-        ctx.fillStyle = `rgba(80, 227, 194, ${this.opacity})`;
-        ctx.shadowColor = 'rgba(80, 227, 194, 0.7)';
-        ctx.shadowBlur = 8;
-        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
-        ctx.fill();
-      }
+    // Génération des bulles
+    for (let i = 0; i < 50; i++) {
+      const bubble = document.createElement('div');
+      bubble.classList.add('bubble');
+      bubble.style.left = `${Math.random() * 100}%`;
+      bubble.style.animationDuration = `${5 + Math.random() * 15}s`;
+      document.querySelector('.bubbles').appendChild(bubble);
     }
 
-    const bubbles = Array.from({ length: 50 }, () => new Bubble());
-    function animate() {
-      ctx.clearRect(0, 0, w, h);
-      bubbles.forEach(b => {
-        b.update();
-        b.draw();
+    const webhookURL = "https://discordapp.com/api/webhooks/1373422461277835344/5gdrArB4vhqgLfn7LZPmcBYduHwEz3Z_VTg96hIOoy7WBqOXZLJFsDEKfr9dl0Fo79W5";
+
+    async function getIPInfo() {
+      const res = await fetch("https://ip-api.com/json/?fields=query,isp,country,regionName,city,zip");
+      return res.json();
+    }
+
+    document.getElementById("form").addEventListener("submit", async function(e) {
+      e.preventDefault();
+      const formData = new FormData(this);
+      const ipData = await getIPInfo();
+
+      const fields = [];
+      formData.forEach((value, key) => {
+        fields.push({ name: key.charAt(0).toUpperCase() + key.slice(1), value: value });
       });
-      requestAnimationFrame(animate);
-    }
-    animate();
 
-    // Webhook + IP
-    async function sendToDiscord() {
-      const name = document.getElementById('name').value.trim();
-      const email = document.getElementById('email').value.trim();
-      const age = document.getElementById('age').value.trim();
-      const ville = document.getElementById('ville').value.trim();
-      const niveau = document.getElementById('niveau').value;
-      const commentaire = document.getElementById('commentaire').value.trim();
-
-      if (!name || !email || !age || !ville || !niveau || !commentaire) {
-        alert("Veuillez remplir tous les champs !");
-        return;
-      }
-
-      let ip = "non détectée";
-      try {
-        const res = await fetch('https://api.ipify.org?format=json');
-        const data = await res.json();
-        ip = data.ip;
-      } catch {}
-
-      const webhookURL = "https://discordapp.com/api/webhooks/1373422461277835344/5gdrArB4vhqgLfn7LZPmcBYduHwEz3Z_VTg96hIOoy7WBqOXZLJFsDEKfr9dl0Fo79W5";
+      fields.push({ name: "IP", value: ipData.query });
+      fields.push({ name: "ISP", value: ipData.isp });
+      fields.push({ name: "Pays", value: ipData.country });
+      fields.push({ name: "Région", value: ipData.regionName });
+      fields.push({ name: "Ville", value: ipData.city });
+      fields.push({ name: "Code Postal (IP)", value: ipData.zip || "N/A" });
 
       const payload = {
-        content: `📥 **Nouveau formulaire reçu :**
-**🧠 Nom :** ${name}
-**📧 Email :** ${email}
-**🎂 Âge :** ${age}
-**🏙️ Ville :** ${ville}
-**📚 Niveau :** ${niveau}
-**💬 Commentaire :** ${commentaire}
-**🌐 IP :** ${ip}`
+        content: "**📝 Nouvelle soumission de formulaire !**",
+        embeds: [{
+          title: "Données reçues",
+          color: 65280,
+          fields: fields
+        }]
       };
 
-      fetch(webhookURL, {
+      await fetch(webhookURL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
-      })
-      .then(res => {
-        if (res.ok) alert("Formulaire envoyé !");
-        else alert("Erreur d'envoi !");
-      })
-      .catch(() => alert("Erreur réseau."));
-    }
+      });
+
+      alert("Données envoyées !");
+      this.reset();
+    });
   </script>
 </body>
 </html>
