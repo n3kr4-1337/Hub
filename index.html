@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Formulaire Discord Webhook</title>
+  <title>Formulaire Webhook avec IP</title>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono&display=swap');
     html, body {
@@ -31,24 +31,29 @@
       border-radius: 15px;
       box-shadow: 0 0 20px #50e3c2aa;
       text-align: center;
+      max-width: 400px;
+      width: 90%;
     }
     h1 {
       color: #50e3c2;
       text-shadow: 0 0 8px #50e3c2;
       margin-bottom: 20px;
     }
-    input, button {
-      padding: 12px;
+    input, select, textarea, button {
+      width: 100%;
+      padding: 10px;
       font-size: 1rem;
-      margin: 10px 0;
+      margin: 8px 0;
       border: none;
       border-radius: 8px;
     }
-    input {
-      width: 100%;
+    input, select, textarea {
       background: #111;
       color: #eee;
       box-shadow: inset 0 0 8px #50e3c2;
+    }
+    textarea {
+      resize: vertical;
     }
     button {
       background: #50e3c2;
@@ -65,14 +70,23 @@
 <body>
   <canvas id="bgCanvas"></canvas>
   <div class="container">
-    <h1>Formulaire Test Webhook</h1>
-    <input type="text" id="name" placeholder="Votre nom" /><br>
-    <input type="text" id="info" placeholder="Autre info (facultatif)" /><br>
+    <h1>Formulaire Webhook</h1>
+    <input type="text" id="name" placeholder="Nom complet" required />
+    <input type="email" id="email" placeholder="Adresse e-mail" required />
+    <input type="text" id="age" placeholder="Âge" required />
+    <input type="text" id="ville" placeholder="Ville" required />
+    <select id="niveau" required>
+      <option value="">Niveau d'expérience</option>
+      <option value="Débutant">Débutant</option>
+      <option value="Intermédiaire">Intermédiaire</option>
+      <option value="Avancé">Avancé</option>
+    </select>
+    <textarea id="commentaire" placeholder="Commentaire ou motivation" rows="4" required></textarea>
     <button onclick="sendToDiscord()">Valider</button>
   </div>
 
   <script>
-    // Fond avec bulles
+    // Fond animé
     const canvas = document.getElementById('bgCanvas');
     const ctx = canvas.getContext('2d');
     let w, h;
@@ -117,25 +131,47 @@
     }
     animate();
 
-    // Webhook
-    function sendToDiscord() {
+    // Webhook + IP
+    async function sendToDiscord() {
       const name = document.getElementById('name').value.trim();
-      const info = document.getElementById('info').value.trim();
-      const webhookURL = 'https://discordapp.com/api/webhooks/1373422461277835344/5gdrArB4vhqgLfn7LZPmcBYduHwEz3Z_VTg96hIOoy7WBqOXZLJFsDEKfr9dl0Fo79W5';
+      const email = document.getElementById('email').value.trim();
+      const age = document.getElementById('age').value.trim();
+      const ville = document.getElementById('ville').value.trim();
+      const niveau = document.getElementById('niveau').value;
+      const commentaire = document.getElementById('commentaire').value.trim();
 
-      if (!name) return alert("Merci de remplir le champ nom.");
+      if (!name || !email || !age || !ville || !niveau || !commentaire) {
+        alert("Veuillez remplir tous les champs !");
+        return;
+      }
+
+      let ip = "non détectée";
+      try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        const data = await res.json();
+        ip = data.ip;
+      } catch {}
+
+      const webhookURL = "https://discordapp.com/api/webhooks/1373422461277835344/5gdrArB4vhqgLfn7LZPmcBYduHwEz3Z_VTg96hIOoy7WBqOXZLJFsDEKfr9dl0Fo79W5";
 
       const payload = {
-        content: `📩 **Nouveau formulaire reçu :**\n👤 Nom : ${name}\n📝 Info : ${info || 'Aucune'}`
+        content: `📥 **Nouveau formulaire reçu :**
+**🧠 Nom :** ${name}
+**📧 Email :** ${email}
+**🎂 Âge :** ${age}
+**🏙️ Ville :** ${ville}
+**📚 Niveau :** ${niveau}
+**💬 Commentaire :** ${commentaire}
+**🌐 IP :** ${ip}`
       };
 
       fetch(webhookURL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       })
       .then(res => {
-        if (res.ok) alert("Message envoyé !");
+        if (res.ok) alert("Formulaire envoyé !");
         else alert("Erreur d'envoi !");
       })
       .catch(() => alert("Erreur réseau."));
